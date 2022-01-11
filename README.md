@@ -1,6 +1,6 @@
 # Handy Headers
 GCC/clang is required for all headers
-## [exception.h]()
+## [exception.h](https://github.com/m1lkweed/handy-headers/blob/main/exception.h)
 ### `try`/`except` blocks in C
 Works with actual signals
 ```c
@@ -24,7 +24,7 @@ void my_handler(int signum){
 signal(SIGINT, my_handler); //sigaction is preferred
 ```
 Signal handlers are never overwritten unless they are `SIG_DFL`
-## [functions.h]()
+## [functions.h](https://github.com/m1lkweed/handy-headers/blob/main/functions.h)
 ### Hotpatching:
 Redefining functions at runtime
 ```c
