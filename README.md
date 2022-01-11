@@ -56,7 +56,7 @@ int (*closure)(void) = closure_create(close_me, 1, 1);
 		printf("%d\n", closure());
 	closure_destroy(closure); //optional
 ```
-Floats and variadics are supported, closeable functions take advantage od the System V ABI.
+Floats and variadics are supported, closeable functions take advantage of the System V ABI.
 
 `closure_create(function, nargs, data)` creates a closure around `function`, which has `nargs` arguments. `data` can be any type but should be the final parameter of `function`.
 ### Lambdas:
