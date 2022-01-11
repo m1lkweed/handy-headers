@@ -51,10 +51,12 @@ closeable int close_me(int a){ //closeable is required on systems that do not us
 	return b += a;
 }
 
-int (*closure)(void) = closure_create(close_me, 1, 1);
+int main(){
+	int (*closure)(void) = closure_create(close_me, 1, 1);
 	for(int i = 0; i < 10; ++i)
 		printf("%d\n", closure());
 	closure_destroy(closure); //optional
+}
 ```
 Floats and variadics are supported, closeable functions take advantage of the System V ABI.
 
