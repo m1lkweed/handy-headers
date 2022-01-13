@@ -17,7 +17,7 @@ int main(){
 ```c
 void my_handler(int signum){
 	if(except_handler.frame) //global
-		siglongjmp(*except_handler.frame, signum);
+		longjmp(*except_handler.frame, signum); //siglongjmp also works
 	exit(1);
 }
 ...
