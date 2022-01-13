@@ -66,4 +66,4 @@ Floats and variadics are supported, closeable functions take advantage of the Sy
 int(*foo)(int) = lambda(int, (int a), {printf("%d\n", a); return 5;});
 foo(3); //prints 3
 ```
-`lambda`s work well with both closures and hotpatches
+`lambda`s work well with both closures and hotpatches but are unsupported in clang
