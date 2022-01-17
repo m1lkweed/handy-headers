@@ -20,7 +20,7 @@ static inline void throw(int id);
 
 #define try ({                                                                           \
 	_Thread_local static sigjmp_buf *_$old_exception_frame$, _$new_exception_frame$; \
-	[[maybe_unused]] _Thread_local int _$except_dummy$;                              \
+	[[maybe_unused]] _Thread_local static int _$except_dummy$;                       \
 	_$old_exception_frame$ = except_handler.frame;                                   \
 	except_handler.frame = &_$new_exception_frame$;                                  \
 	except_handler.exception = 0;                                                    \
