@@ -33,7 +33,7 @@ static inline void throw(int id);
 #define except(e)                                                               \
 	except_handler.exception = 0;                                           \
         }else{                                                                  \
-		[[maybe_unused]] int _$except_dummy$;                           \
+		[[maybe_unused]] _Thread_local int _$except_dummy$;             \
 		_$EXCEPT_EMPTY$(_$except_dummy$, e) = except_handler.exception; \
         }                                                                       \
         except_handler.frame = _$old_exception_frame$;                          \
