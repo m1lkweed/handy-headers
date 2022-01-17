@@ -27,14 +27,10 @@ static inline void throw(int id);
 	if((except_handler.exception = sigsetjmp(_$new_exception_frame$, 0)) == 0){      \
 		switch(0)default:case 0: /*lets us call break*/
 
-#define _$EXCEPT_EMPTY$_HELPER(...) , ## __VA_ARGS__
-#define _$EXCEPT_EMPTY$(default, ...) (default _$EXCEPT_EMPTY$_HELPER(__VA_ARGS__))
-
 #define except(e)                                                               \
 	except_handler.exception = 0;                                           \
         }else{                                                                  \
-		[[maybe_unused]] int _$except_dummy$;                           \
-		_$EXCEPT_EMPTY$(_$except_dummy$, e) = except_handler.exception; \
+		e = except_handler.exception;                                   \
         }                                                                       \
         except_handler.frame = _$old_exception_frame$;                          \
 	});                                                                     \
