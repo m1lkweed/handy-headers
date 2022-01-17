@@ -8,7 +8,7 @@ int main(){
 	int e;
 	try{ //brackets optional
 		__asm("ud2");
-	}except(e){ //e must be a modifiable lvalue
+	}except(e){ //optional, e must be a modifiable lvalue if used
 		printf("Caught a %d: %s\n", e, strsignal(e));
 	}
 }
