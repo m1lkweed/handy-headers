@@ -41,13 +41,13 @@ static inline void throw(int id);
 if(except_handler.exception != 0)
 
 #ifdef EXCEPTION_IMPLEMENTATION
-#include <stdlib.h> // exit()
+#include <stdlib.h> // _Exit()
 
 _Noreturn void _$exception_handler$(int signum){
 	if(except_handler.frame)
 		siglongjmp(*except_handler.frame, signum);
 	else
-		exit(128 + signum);
+		_Exit(128 + signum);
 }
 
 __attribute__((constructor)) void _$except_init$(void){
