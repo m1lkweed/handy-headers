@@ -43,6 +43,8 @@ if(except_handler.exception != 0)
 #ifdef EXCEPTION_IMPLEMENTATION
 #include <stdlib.h> // _Exit()
 
+static _Thread_local char _$exception_stack$[SIGSTKSZ];
+
 _Noreturn void _$exception_handler$(int signum){
 	if(except_handler.frame)
 		siglongjmp(*except_handler.frame, signum);
@@ -51,10 +53,19 @@ _Noreturn void _$exception_handler$(int signum){
 }
 
 __attribute__((constructor)) void _$except_init$(void){
+	stack_t _$exception_stack_wrapper$ = {
+		.ss_size = SIGSTKSZ,
+		.ss_sp = _$exception_stack$,
+		.ss_flags = 0
+	};
+
 	struct sigaction old_action, new_action = {
 		.sa_handler = _$exception_handler$,
-		.sa_flags = SA_NODEFER
+		.sa_flags = SA_NODEFER | SA_ONSTACK,
+		.sa_mask = ~0
 	};
+
+	sigaltstack(&_$exception_stack_wrapper$, NULL);
 	sigaction(SIGILL,  NULL, &old_action);
 	if(old_action.sa_handler == SIG_DFL)
 		sigaction(SIGILL,  &new_action, NULL);
@@ -67,6 +78,11 @@ __attribute__((constructor)) void _$except_init$(void){
 	sigaction(SIGSEGV, NULL, &old_action);
 	if(old_action.sa_handler == SIG_DFL)
 		sigaction(SIGSEGV, &new_action, NULL);
+#ifdef SIGSTKFLT
+	sigaction(SIGSTKFLT, NULL, &old_action);
+	if(old_action.sa_handler == SIG_DFL)
+		sigaction(SIGSTKFLT, &new_action, NULL);
+#endif
 #ifdef SIGBUS
 	sigaction(SIGBUS, NULL, &old_action);
 	if(old_action.sa_handler == SIG_DFL)
