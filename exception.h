@@ -61,8 +61,7 @@ __attribute__((constructor)) void _$except_init$(void){
 
 	struct sigaction old_action, new_action = {
 		.sa_handler = _$exception_handler$,
-		.sa_flags = SA_NODEFER | SA_ONSTACK,
-		.sa_mask = ~0
+		.sa_flags = SA_NODEFER | SA_ONSTACK
 	};
 
 	sigaltstack(&_$exception_stack_wrapper$, NULL);
@@ -130,7 +129,7 @@ __attribute__((constructor)) void _$except_init$(void){
 #endif
 }
 
-inline void throw(int id){
+__attribute__((unused)) inline void throw(int id){
 	if(id != 0){
 		except_handler.exception = id;
 		if(except_handler.frame)
