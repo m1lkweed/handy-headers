@@ -10,7 +10,7 @@
 
 struct exception_frame {
 	sigjmp_buf *frame;
-	sig_atomic_t exception;
+	volatile sig_atomic_t exception;
 };
 
 _Thread_local struct exception_frame except_handler = {0};
