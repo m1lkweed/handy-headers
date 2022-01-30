@@ -16,7 +16,7 @@ struct exception_frame {
 _Thread_local struct exception_frame except_handler = {0};
 
 void _$except_init$(void);
-static inline void throw(int id);
+void throw(int id);
 
 #define try ({                                                                           \
 	_Thread_local static sigjmp_buf *_$old_exception_frame$, _$new_exception_frame$; \
@@ -40,6 +40,7 @@ static inline void throw(int id);
 });                                                                             \
 if(except_handler.exception != 0)
 
+#define EXCEPTION_IMPLEMENTATION
 #ifdef EXCEPTION_IMPLEMENTATION
 #include <stdlib.h> // _Exit()
 
@@ -52,7 +53,7 @@ _Noreturn void _$exception_handler$(int signum){
 		_Exit(128 + signum);
 }
 
-__attribute__((constructor)) void _$except_init$(void){
+[[gnu::constructor]] void _$except_init$(void){
 	stack_t _$exception_stack_wrapper$ = {
 		.ss_size = SIGSTKSZ,
 		.ss_sp = _$exception_stack$,
@@ -68,68 +69,63 @@ __attribute__((constructor)) void _$except_init$(void){
 	sigaction(SIGILL,  NULL, &old_action);
 	if(old_action.sa_handler == SIG_DFL)
 		sigaction(SIGILL,  &new_action, NULL);
+#ifdef SIGTRAP
+	sigaction(SIGTRAP, NULL, &old_action);
+	if(old_action.sa_handler == SIG_DFL)
+		sigaction(SIGTRAP, &new_action, NULL);
+#endif
 	sigaction(SIGABRT, NULL, &old_action);
 	if(old_action.sa_handler == SIG_DFL)
 		sigaction(SIGABRT, &new_action, NULL);
+#ifdef SIGBUS
+	sigaction(SIGBUS, NULL, &old_action);
+	if(old_action.sa_handler == SIG_DFL)
+		sigaction(SIGBUS, &new_action, NULL);
+#endif
 	sigaction(SIGFPE,  NULL, &old_action);
 	if(old_action.sa_handler == SIG_DFL)
 		sigaction(SIGFPE,  &new_action, NULL);
 	sigaction(SIGSEGV, NULL, &old_action);
 	if(old_action.sa_handler == SIG_DFL)
 		sigaction(SIGSEGV, &new_action, NULL);
-#ifdef SIGSTKFLT
-	sigaction(SIGSTKFLT, NULL, &old_action);
-	if(old_action.sa_handler == SIG_DFL)
-		sigaction(SIGSTKFLT, &new_action, NULL);
-#endif
-#ifdef SIGBUS
-	sigaction(SIGBUS, NULL, &old_action);
-	if(old_action.sa_handler == SIG_DFL)
-		sigaction(SIGBUS, &new_action, NULL);
-#endif
 #ifdef SIGPIPE
 	sigaction(SIGPIPE, NULL, &old_action);
 	if(old_action.sa_handler == SIG_DFL)
 		sigaction(SIGPIPE, &new_action, NULL);
+#endif
+#ifdef SIGSTKFLT
+	sigaction(SIGSTKFLT, NULL, &old_action);
+	if(old_action.sa_handler == SIG_DFL)
+		sigaction(SIGSTKFLT, &new_action, NULL);
 #endif
 #ifdef SIGURG
 	sigaction(SIGURG, NULL, &old_action);
 	if(old_action.sa_handler == SIG_DFL)
 		sigaction(SIGURG, &new_action, NULL);
 #endif
-#ifdef SIGTRAP
-	sigaction(SIGTRAP, NULL, &old_action);
+#ifdef SIGXFSZ
+	sigaction(SIGXFSZ, NULL, &old_action);
 	if(old_action.sa_handler == SIG_DFL)
-		sigaction(SIGTRAP, &new_action, NULL);
-#endif
-#ifdef SIGEMT
-	sigaction(SIGEMT, NULL, &old_action);
-	if(old_action.sa_handler == SIG_DFL)
-		sigaction(SIGEMT, &new_action, NULL);
+		sigaction(SIGXFSZ, &new_action, NULL);
 #endif
 #ifdef SIGSYS
 	sigaction(SIGSYS, NULL, &old_action);
 	if(old_action.sa_handler == SIG_DFL)
 		sigaction(SIGSYS, &new_action, NULL);
 #endif
+#ifdef SIGEMT
+	sigaction(SIGEMT, NULL, &old_action);
+	if(old_action.sa_handler == SIG_DFL)
+		sigaction(SIGEMT, &new_action, NULL);
+#endif
 #ifdef SIGLOST
 	sigaction(SIGLOST, NULL, &old_action);
 	if(old_action.sa_handler == SIG_DFL)
 		sigaction(SIGLOST, &new_action, NULL);
 #endif
-#ifdef SIGXCPU
-	sigaction(SIGXCPU, NULL, &old_action);
-	if(old_action.sa_handler == SIG_DFL)
-		sigaction(SIGXCPU, &new_action, NULL);
-#endif
-#ifdef SIGXFSZ
-	sigaction(SIGXFSZ, NULL, &old_action);
-	if(old_action.sa_handler == SIG_DFL)
-		sigaction(SIGXFSZ, &new_action, NULL);
-#endif
 }
 
-__attribute__((unused)) inline void throw(int id){
+[[maybe_unused]] void throw(int id){
 	if(id != 0){
 		except_handler.exception = id;
 		if(except_handler.frame)
