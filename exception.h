@@ -40,7 +40,6 @@ void throw(int id);
 });                                                                             \
 if(except_handler.exception != 0)
 
-#define EXCEPTION_IMPLEMENTATION
 #ifdef EXCEPTION_IMPLEMENTATION
 #include <stdlib.h> // _Exit()
 
