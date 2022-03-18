@@ -13,7 +13,7 @@ int main(){
 	}
 }
 ```
-`throw()`: prevents values from killing the program (such as `SIGKILL`), though `raise()` works for most cases. Both will work for custom handlers automatically. `SIGINT` and some other signals are intentionally not caught, though they can be manually handled by adding the following:
+`throw()`: throws an exception without raising a signal, so it should be faster than `raise()` along . Both will work for custom handlers automatically. `SIGINT` and some other signals are intentionally not caught, though they can be manually handled by adding the following:
 ```c
 void my_handler(int signum){
 	if(except_handler.frame) //global
