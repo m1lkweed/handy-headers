@@ -13,7 +13,7 @@ int main(){
 	}
 }
 ```
-`throw()`: throws an exception without raising a signal, so it should be faster than `raise()`. Both will work for custom handlers automatically. `SIGINT` and some other signals are intentionally not caught, though they can be manually handled by adding the following:
+`throw(code)`: throws an exception without raising a signal, so it should be faster than `raise()`. Both will work for custom handlers automatically. `SIGINT` and some other signals are intentionally not caught, though they can be manually handled by adding the following:
 ```c
 void my_handler(int signum){
 	if(except_handler.frame) //global
@@ -44,11 +44,11 @@ int main(){
 	foo(); //prints foo, NULL resets the patch
 }
 ```
-`is_patchable()` returns true if a function can safely be patched (safety can be disabled by defining `ALLOW_UNSAFE_HOTPATCH`)
+`is_patchable(function)` returns true if `function` can safely be patched (safety can be disabled by defining `ALLOW_UNSAFE_HOTPATCH`)
 
-`is_patched()` will return the address of the replacing function if a function is patched, else NULL
+`is_patched(function)` will return the address of the replacing function if `function` is patched, else NULL
 
-`original_function()` returns a callable pointer to the original code of a patched function
+`original_function(function)` returns a callable pointer to the original code of a patched function
 ### Closures:
 ```c
 closeable int close_me(int a){ //required on systems that do not use the SYSV ABI by default
@@ -65,10 +65,10 @@ int main(){
 ```
 Floats and variadics are supported, closeable functions take advantage of the System V ABI.
 
-`closure_create(function, nargs, data)` creates a closure around `function`, which has `nargs` arguments. `data` can be any type but should be the final parameter of `function`.
+`closure_create(function, nargs, data)` creates a closure around `function`, which has `nargs` arguments. `data` can be any type but should match the final parameter of `function`.
 ### Lambdas:
 ```c
 int(*foo)(int) = lambda(int, (int a), {printf("%d\n", a); return 5;});
 foo(3); //prints 3
 ```
-`lambda`s work well with both closures and hotpatches but are unsupported in clang
+lambdas work well with both closures and hotpatches but are unsupported in clang
