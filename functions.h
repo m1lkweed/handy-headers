@@ -6,6 +6,7 @@
 #define _FUNCTIONS_H_
 
 #include <stdlib.h> // size_t
+#include <stdbool.h>
 
 #if !defined(__x86_64__)
 #error Requires x86_64
@@ -31,8 +32,17 @@
 #define patchable __attribute__((ms_hook_prologue, aligned(8), noinline, noclone))
 #define closeable __attribute__((sysv_abi))
 
+// Replace a patchable function with another function
 int hotpatch(void * restrict target, void * restrict replacement);
+// If function is patched, return the address of the replacement, else NULL
+void *is_patched(void *function);
+// Returns true if function is patchable, useful if ALLOW_UNSAFE_HOTPATCH is not defined
+bool is_patchable(void *function);
+// Returns a callable address of the original patched function
+const void *original_function(void *function);
+// Creates and returns a closure around f, a function with nargs parameters, and binds userdata to the last argument
 void *closure_create(void * restrict f, size_t nargs, void * restrict userdata);
+// Destroys a closure
 void closure_destroy(void *closure);
 
 #ifdef FUNCTIONS_IMPLEMENTATION
@@ -74,7 +84,7 @@ int hotpatch(void * restrict target, void * restrict replacement){
 		return -1;
 	if(_Alignof(target) < 8) // not aligned, don't patch
 		return -1;
-	void *page = (void *)((uintptr_t)target & ~0xfff);
+	void *page = (void*)((uintptr_t)target & ~0xfff);
 	int pagesize = getpagesize();
 #ifdef _REENTRANT
 	mtx_lock(&hotpatch_mutex);
@@ -88,12 +98,12 @@ int hotpatch(void * restrict target, void * restrict replacement){
 	if(replacement == NULL){
 		memcpy(target, _$hotpatch_dummy_func$, 8);
 	}else{
-		uint32_t rel = (char *)replacement - (char *)target - 5;
+		uint32_t rel = (char*)replacement - (char*)target - 5;
 		union {
 			uint8_t bytes[8];
 			uint64_t value;
 		} instruction = {{0xe9, (rel >> 0) & 0xFF, (rel >> 8) & 0xFF, (rel >> 16) & 0xFF, (rel >> 24) & 0xFF}};
-		*(uint64_t *)target = instruction.value;
+		*(uint64_t*)target = instruction.value;
 	}
 	if(mprotect(page, pagesize, PROT_EXEC) != 0){
 #ifdef _REENTRANT
@@ -107,6 +117,44 @@ int hotpatch(void * restrict target, void * restrict replacement){
 	return 0;
 }
 
+void *is_patched(void *function){
+	uint8_t *check = function;
+	if(!__builtin_memcmp((void*)_$hotpatch_dummy_func$, function, 8)){
+		return NULL;
+	}else{
+		uintptr_t address = 0;
+		address += check[8];
+		address <<= 8;
+		address += check[7];
+		address <<= 8;
+		address += check[6];
+		address <<= 8;
+		address += check[5];
+		address <<= 8;
+		address += check[4];
+		address <<= 8;
+		address += check[3];
+		address <<= 8;
+		address += check[2];
+		address <<= 8;
+		address += check[1];
+		return (void*)address;
+	}
+}
+
+bool is_patchable(void *function){
+	uint8_t *check = function;
+	uint64_t *check8 = function;
+	uint64_t *dummy8 = (void*)_$hotpatch_dummy_func$;
+	return ((_Alignof(function) >= 8) && (check[0] == 0xe9 || check8[0] == dummy8[0]));
+}
+
+const void *original_function(void *func){
+	if(is_patchable(func))
+		return &((uint8_t*)func)[8];
+	return func;
+}
+
 static inline void _$closure_set_data$(void * restrict closure, void * restrict data){
 	void **p = closure;
 	p[-2] = data;
@@ -118,12 +166,12 @@ static inline void _$closure_set_function$(void * restrict closure, void * restr
 }
 
 static const unsigned char _$closure_thunk$[6][13] = {
-	{0x48, 0x8b, 0x3d, 0xe9, 0xff, 0xff, 0xff, 0xff, 0x25, 0xeb, 0xff, 0xff, 0xff},
-	{0x48, 0x8b, 0x35, 0xe9, 0xff, 0xff, 0xff, 0xff, 0x25, 0xeb, 0xff, 0xff, 0xff},
-	{0x48, 0x8b, 0x15, 0xe9, 0xff, 0xff, 0xff, 0xff, 0x25, 0xeb, 0xff, 0xff, 0xff},
-	{0x48, 0x8b, 0x0d, 0xe9, 0xff, 0xff, 0xff, 0xff, 0x25, 0xeb, 0xff, 0xff, 0xff},
-	{0x4C, 0x8b, 0x05, 0xe9, 0xff, 0xff, 0xff, 0xff, 0x25, 0xeb, 0xff, 0xff, 0xff},
-	{0x4C, 0x8b, 0x0d, 0xe9, 0xff, 0xff, 0xff, 0xff, 0x25, 0xeb, 0xff, 0xff, 0xff}
+	{0x48, 0x8b, 0x3d, 0xe9, 0xff, 0xff, 0xff, 0xff, 0x25, 0xeb, 0xff, 0xff, 0xff},	// dec eax; mov edi, DWORD PTR ds:0xffffffe9;jmp DWORD PTR ds:0xffffffeb
+	{0x48, 0x8b, 0x35, 0xe9, 0xff, 0xff, 0xff, 0xff, 0x25, 0xeb, 0xff, 0xff, 0xff},	// dec eax; mov esi, DWORD PTR ds:0xffffffe9;jmp DWORD PTR ds:0xffffffeb
+	{0x48, 0x8b, 0x15, 0xe9, 0xff, 0xff, 0xff, 0xff, 0x25, 0xeb, 0xff, 0xff, 0xff},	// dec eax; mov edx, DWORD PTR ds:0xffffffe9;jmp DWORD PTR ds:0xffffffeb
+	{0x48, 0x8b, 0x0d, 0xe9, 0xff, 0xff, 0xff, 0xff, 0x25, 0xeb, 0xff, 0xff, 0xff},	// dec eax; mov ecx, DWORD PTR ds:0xffffffe9;jmp DWORD PTR ds:0xffffffeb
+	{0x4c, 0x8b, 0x05, 0xe9, 0xff, 0xff, 0xff, 0xff, 0x25, 0xeb, 0xff, 0xff, 0xff},	// dec esp; mov eax, DWORD PTR ds:0xffffffe9;jmp DWORD PTR ds:0xffffffeb
+	{0x4c, 0x8b, 0x0d, 0xe9, 0xff, 0xff, 0xff, 0xff, 0x25, 0xeb, 0xff, 0xff, 0xff}	// dec esp; mov ecx, DWORD PTR ds:0xffffffe9;jmp DWORD PTR ds:0xffffffeb
 };
 
 void *closure_create(void * restrict f, size_t nargs, void *userdata){
@@ -164,7 +212,7 @@ void closure_destroy(void *closure){
 #ifdef _REENTRANT
 	mtx_lock(&closure_mutex);
 #endif
-	munmap((char *)closure - page_size, page_size * 2);
+	munmap((char*)closure - page_size, page_size * 2);
 #ifdef _REENTRANT
 	mtx_unlock(&closure_mutex);
 #endif
@@ -172,7 +220,8 @@ void closure_destroy(void *closure){
 
 #endif // FUNCTIONS_IMPLEMENTATION
 
-#define closure_create(f, nargs, userdata) closure_create((void *)f, nargs, (void *)userdata) /*cast to avoid warnings*/
+#define closure_create(f, nargs, userdata) closure_create((void*)f, nargs, (void*)userdata) /*cast to avoid warnings*/
+#define original_function(f) ((typeof(&f))original_function(f))
 
 #endif // _FUNCTIONS_H_
 /*--------------------- --END OF EXTRA FUNCTIONS CODE------------------------*/
