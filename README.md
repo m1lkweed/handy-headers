@@ -44,6 +44,11 @@ int main(){
 	foo(); //prints foo, NULL resets the patch
 }
 ```
+`is_patchable()` returns true if a function can safely be patched (safety can be disabled by defining `ALLOW_UNSAFE_HOTPATCH`)
+
+`is_patched()` will return the address of the replacing function if a function is patched, else NULL
+
+`original_function()` returns a callable pointer to the original code of a patched function
 ### Closures:
 ```c
 closeable int close_me(int a){ //required on systems that do not use the SYSV ABI by default
