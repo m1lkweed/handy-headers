@@ -25,9 +25,12 @@ _Noreturn void my_handler(int signum){
 
 int main(){
 	foo();
-	hotpatch(foo, bar);
+	if(is_patchable(foo))
+		hotpatch(foo, bar);
 	foo();
-	hotpatch(foo, NULL);
+	original_function(foo)();
+	if(is_patched(foo))
+		hotpatch(foo, NULL);
 	foo();
 	int e;
 	signal(SIGTERM, my_handler);
@@ -37,7 +40,7 @@ int main(){
 		printf("Caught a %d: %s\n", e, strsignal(e));
 	}
 
-	int (*closure)(void) = closure_create(close_me, 1, 1);
+	int (*closure)(void) = closure_create(close_me, 1, 5); //increment by 5 each call
 	for(int i = 0; i < 10; ++i)
 		printf("%d\n", closure());
 }
