@@ -52,7 +52,7 @@ closeable int close_me(int a){ //required on systems that do not use the SYSV AB
 }
 
 int main(){
-	int (*closure)(void) = closure_create(close_me, 1, 1);
+	int (*closure)(void) = closure_create(close_me, 1, 5); //increment by 5 each call
 	for(int i = 0; i < 10; ++i)
 		printf("%d\n", closure());
 	closure_destroy(closure); //optional
