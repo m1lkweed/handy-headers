@@ -47,6 +47,7 @@ void closure_destroy(void *closure);
 
 #ifdef FUNCTIONS_IMPLEMENTATION
 #include <stdint.h>
+#include <stddef.h>
 #include <string.h>   // memcpy()
 #include <unistd.h>   // getpagesize()
 #include <sys/mman.h> // mprotect()
@@ -119,26 +120,15 @@ int hotpatch(void * restrict target, void * restrict replacement){
 
 void *is_patched(void *function){
 	uint8_t *check = function;
+	if(!is_patchable(function))
+		return NULL;
 	if(!__builtin_memcmp((void*)_$hotpatch_dummy_func$, function, 8)){
 		return NULL;
 	}else{
-		uintptr_t address = 0;
-		address += check[8];
-		address <<= 8;
-		address += check[7];
-		address <<= 8;
-		address += check[6];
-		address <<= 8;
-		address += check[5];
-		address <<= 8;
-		address += check[4];
-		address <<= 8;
-		address += check[3];
-		address <<= 8;
-		address += check[2];
-		address <<= 8;
-		address += check[1];
-		return (void*)address;
+		uintptr_t address = (uintptr_t)function;
+		uint32_t offset = (check[4] << 24) + (check[3] << 16) + (check[2] << 8) + check[1];
+		address += offset;
+		return (void*)address + 5;
 	}
 }
 
