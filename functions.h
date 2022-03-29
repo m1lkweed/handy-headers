@@ -22,12 +22,7 @@
 #warning Requires System V ABI, use 'closeable' on closeable functions to ensure compatability. Use -DSYSV_ABI to hide this warning
 #endif
 
-#if defined(__GNUC__) && !defined(__clang__)
-#define lambda(lambda$_ret, lambda$_args, lambda$_body)\
-({lambda$_ret lambda$__anon$ lambda$_args lambda$_body &lambda$__anon$;})
-#else
-#warning Lambdas are not supported by your compiler
-#endif
+#define lambda(lambda$_ret, lambda$_args, lambda$_body) ({lambda$_ret lambda$__anon$ lambda$_args lambda$_body &lambda$__anon$;})
 
 #define patchable __attribute__((ms_hook_prologue, aligned(8), noinline, noclone))
 #define closeable __attribute__((sysv_abi))
@@ -212,6 +207,11 @@ void closure_destroy(void *closure){
 
 #define closure_create(f, nargs, userdata) closure_create((void*)f, nargs, (void*)userdata) /*cast to avoid warnings*/
 #define original_function(f) ((typeof(&f))original_function(f))
+
+#ifndef ALLOW_UNSAFE_HOTPATCH
+#define HOTPATCH_TYPECMP(x, y) (_Generic((y), typeof(NULL):1, default:(_Generic((*y), typeof(&x):1, default:0))))
+#define hotpatch(x, y) (HOTPATCH_TYPECMP(x, y)?hotpatch(x, y):-1)
+#endif
 
 #endif // _FUNCTIONS_H_
 /*--------------------- --END OF EXTRA FUNCTIONS CODE------------------------*/
