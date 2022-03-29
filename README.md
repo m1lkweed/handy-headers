@@ -1,5 +1,5 @@
 # Handy Headers
-GCC/clang is required for all headers
+GCC is required for all headers
 ## [exception.h](https://github.com/m1lkweed/handy-headers/blob/main/exception.h)
 ### `try`/`except` blocks in C
 Works with actual signals
