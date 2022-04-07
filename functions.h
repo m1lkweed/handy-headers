@@ -205,7 +205,7 @@ void closure_destroy(void *closure){
 
 #endif // FUNCTIONS_IMPLEMENTATION
 
-#define closure_create(f, nargs, userdata) closure_create((void*)f, nargs, (void*)userdata) /*cast to avoid warnings*/
+#define closure_create(f, nargs, userdata) ({static typeof(userdata) $ = 0; $ = userdata; (closure_create)((void*)f, nargs, (void*)*(typeof(uintptr_t)*)&$);}) /*cast to avoid warnings*/
 #define original_function(f) ((typeof(&f))original_function(f))
 #define is_patched(f) ((typeof(&f))is_patched(f))
 
