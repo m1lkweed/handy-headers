@@ -23,7 +23,7 @@ void my_handler(int signum){
 ...
 signal(SIGINT, my_handler); //sigaction is preferred
 ```
-Signal handlers are never overwritten unless they are `SIG_DFL`
+Signal handlers are never overwritten unless they are `SIG_DFL`.
 ## [functions.h](https://github.com/m1lkweed/handy-headers/blob/main/functions.h)
 ### Hotpatching:
 Redefining functions at runtime
@@ -44,17 +44,17 @@ int main(){
 	foo(); //prints foo, NULL resets the patch
 }
 ```
-`hotpatch(target, replacement)` replaces all calls to `target` with calls to `replacement`
+`hotpatch(target, replacement)` replaces all calls to `target` with calls to `replacement`.
 
-`is_patchable(function)` returns true if `function` can safely be patched
+`is_patchable(function)` returns true if `function` can safely be patched.
 
-`is_patched(function)` will return the address of the replacing function if `function` is patched, else NULL
+`is_patched(function)` will return the address of the replacing function if `function` is patched, else NULL.
 
-`original_function(function)` returns a callable pointer to the original code of a patched function
+`original_function(function)` returns a callable pointer to the original code of a patched function.
 
 **Safety**
 
-Unless `ALLOW_UNSAFE_HOTPATCH` is defined, all calls to `hotpatch()` will ensure that `target` is patchable and that `replacement` and `target` have identical signatures
+Unless `ALLOW_UNSAFE_HOTPATCH` is defined, all calls to `hotpatch()` will ensure that `target` is patchable and that `replacement` and `target` have identical signatures.
 
 ### Closures:
 ```c
@@ -72,7 +72,7 @@ int main(){
 ```
 Floats and variadics are supported, closeable functions take advantage of the System V ABI.
 
-`closure_create(function, nargs, data)` creates a closure around `function`, which has `nargs` arguments. `data` can be any type but should match the final parameter of `function`.
+`closure_create(function, nargs, data)` creates a closure around `function`, which has `nargs` arguments (max. 6). `data` can be any type but should match the final parameter of `function`.
 ### Lambdas:
 ```c
 int(*foo)(int) = lambda(int, (int a), {printf("%d\n", a); return 5;});
