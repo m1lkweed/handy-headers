@@ -70,7 +70,7 @@ int main(){
 	closure_destroy(closure); //optional
 }
 ```
-Floats and variadics are supported, closeable functions take advantage of the System V ABI.
+Floats and variadics are not supported, closeable functions take advantage of the System V ABI.
 
 `closure_create(function, nargs, data)` creates a closure around `function`, which has `nargs` arguments (max. 6). `data` can be any type but should match the final parameter of `function`.
 ### Lambdas:
