@@ -71,8 +71,8 @@ int hotpatch(void * restrict target, void * restrict replacement){
 #ifdef _REENTRANT
 	call_once(&hotpatch_mutex_flag, _$void_hotpatch_mtx_init$);
 #endif
-	if(target == replacement || target == NULL)
-		return -1; // would cause an endless loop or NULL dereference otherwise
+	if(target == NULL)
+		return -1; // prevent NULL dereference otherwise
 	uint8_t *check = target;
 	uint64_t * check8 = target;
 	uint64_t * dummy8 = (void*)_$hotpatch_dummy_func$;
@@ -91,7 +91,7 @@ int hotpatch(void * restrict target, void * restrict replacement){
 #endif
 		return -1;
 	}
-	if(replacement == NULL){
+	if(target == replacement || replacement == NULL){ // first case would cause an endless loop, second would dereference NULL
 		memcpy(target, _$hotpatch_dummy_func$, 8);
 	}else{
 		uint32_t rel = (char*)replacement - (char*)target - 5;
@@ -207,6 +207,7 @@ void closure_destroy(void *closure){
 
 #define closure_create(f, nargs, userdata) closure_create((void*)f, nargs, (void*)userdata) /*cast to avoid warnings*/
 #define original_function(f) ((typeof(&f))original_function(f))
+#define is_patched(f) ((typeof(&f))is_patched(f))
 
 #ifndef ALLOW_UNSAFE_HOTPATCH
 #define HOTPATCH_TYPECMP(x, y) (_Generic((y), typeof(NULL):1, default:(_Generic((*y), typeof(&x):1, default:0))))
