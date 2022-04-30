@@ -41,15 +41,25 @@ void throw(int id);
 if(except_handler.exception != 0)
 
 #ifdef EXCEPTION_IMPLEMENTATION
-#include <stdlib.h> // _Exit()
 
 static _Thread_local char _$exception_stack$[SIGSTKSZ];
 
 _Noreturn void _$exception_handler$(int signum){
-	if(except_handler.frame)
+	if(except_handler.frame){
 		siglongjmp(*except_handler.frame, signum);
-	else
+	}else{
+		//Set handler to SIG_DFL and reraise signal, in case
+		//the system wants to print a message or core dump
+		struct sigaction old_action, new_action = {
+			.sa_handler = SIG_DFL,
+			.sa_flags = SA_NODEFER
+		};
+		sigaction(signum,  NULL, &old_action);
+		sigaction(signum,  &new_action, NULL);
+		raise(signum);
+		sigaction(signum,  &old_action, NULL);
 		_Exit(128 + signum);
+	}
 }
 
 [[gnu::constructor]] void _$except_init$(void){
