@@ -24,7 +24,7 @@
 
 #define lambda(lambda$_ret, lambda$_args, lambda$_body) ({lambda$_ret lambda$__anon$ lambda$_args lambda$_body &lambda$__anon$;})
 
-#define patchable __attribute__((ms_hook_prologue, aligned(8), noinline, noclone))
+#define patchable __attribute__((ms_hook_prologue, aligned(8), noipa))
 #define closeable __attribute__((sysv_abi))
 
 // Replace a patchable function with another function
@@ -32,9 +32,9 @@ int hotpatch(void * restrict target, void * restrict replacement);
 // If function is patched, return the address of the replacement, else NULL
 void *is_patched(void *function);
 // Returns true if function is patchable, useful if ALLOW_UNSAFE_HOTPATCH is not defined
-bool is_patchable(void *function);
+[[gnu::pure]] bool is_patchable(void *function);
 // Returns a callable address of the original patched function
-const void *original_function(void *function);
+[[gnu::nonnull, gnu::pure]] const void *original_function(void *function);
 // Creates and returns a closure around f, a function with nargs parameters, and binds userdata to the last argument
 void *closure_create(void * restrict f, size_t nargs, void * restrict userdata);
 // Destroys a closure
@@ -56,11 +56,11 @@ static once_flag hotpatch_mutex_flag;
 static mtx_t closure_mutex;
 static once_flag closure_mutex_flag;
 
-static inline void _$void_hotpatch_mtx_init$(void){
+[[gnu::visibility("internal")]] static inline void _$void_hotpatch_mtx_init$(void){
 	mtx_init(&hotpatch_mutex, mtx_plain);
 }
 
-static inline void _$void_closure_mtx_init$(void){
+[[gnu::visibility("internal")]] static inline void _$void_closure_mtx_init$(void){
 	mtx_init(&closure_mutex, mtx_plain);
 }
 #endif
@@ -127,14 +127,14 @@ void *is_patched(void *function){
 	}
 }
 
-bool is_patchable(void *function){
+[[gnu::pure]] bool is_patchable(void *function){
 	uint8_t *check = function;
 	uint64_t *check8 = function;
 	uint64_t *dummy8 = (void*)_$hotpatch_dummy_func$;
 	return ((_Alignof(function) >= 8) && (check[0] == 0xe9 || check8[0] == dummy8[0]));
 }
 
-const void *original_function(void *func){
+[[gnu::nonnull, gnu::pure]] const void *original_function(void *func){
 	if(is_patchable(func))
 		return &((uint8_t*)func)[8];
 	return func;
