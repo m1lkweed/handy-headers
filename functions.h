@@ -24,9 +24,8 @@
 
 #define lambda(lambda$_ret, lambda$_args, lambda$_body) ({lambda$_ret lambda$__anon$ lambda$_args lambda$_body &lambda$__anon$;})
 
-#define patchable __attribute__((ms_hook_prologue, aligned(8), noipa))
-#define closeable __attribute__((sysv_abi))
-
+#define patchable [[gnu::ms_hook_prologue, gnu::aligned(8), gnu::noipa]]
+#define closeable [[gnu::sysv_abi]]
 // Replace a patchable function with another function
 int hotpatch(void * restrict target, void * restrict replacement);
 // If function is patched, return the address of the replacement, else NULL
