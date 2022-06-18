@@ -18,27 +18,27 @@ _Thread_local struct exception_frame except_handler = {0};
 void _$except_init$(void);
 void throw(int id);
 
-#define try ({                                                                           \
-	_Thread_local static sigjmp_buf *_$old_exception_frame$, _$new_exception_frame$; \
-	[[maybe_unused]] _Thread_local static int _$except_dummy$;                       \
-	_$old_exception_frame$ = except_handler.frame;                                   \
-	except_handler.frame = &_$new_exception_frame$;                                  \
-	except_handler.exception = 0;                                                    \
-	_$except_init$();                                                                \
-	if((except_handler.exception = sigsetjmp(_$new_exception_frame$, 0)) == 0){      \
-		switch(0)default:case 0: /*lets us call break*/
+#define try ({                                                                      \
+	sigjmp_buf *_$old_exception_frame$, _$new_exception_frame$;                 \
+	int _$except_dummy$ = -1;                                                   \
+	_$old_exception_frame$ = except_handler.frame;                              \
+	except_handler.frame = &_$new_exception_frame$;                             \
+	except_handler.exception = 0;                                               \
+	_$except_init$();                                                           \
+	if((except_handler.exception = sigsetjmp(_$new_exception_frame$, 0)) == 0){ \
+		for(; _$except_dummy$; ++_$except_dummy$) /*lets us call break safely*/
 
 #define _$EXCEPT_EMPTY$_HELPER(...) = except_handler.exception, ## __VA_ARGS__
 #define _$EXCEPT_EMPTY$(default, ...) default _$EXCEPT_EMPTY$_HELPER(__VA_ARGS__)
 
 #define except(e)                                                               \
 		except_handler.exception = 0;                                   \
-        }else{                                                                  \
+	}else{                                                                  \
 		_$EXCEPT_EMPTY$(_$except_dummy$, e) = except_handler.exception; \
-        }                                                                       \
-        except_handler.frame = _$old_exception_frame$;                          \
+	}                                                                       \
+	except_handler.frame = _$old_exception_frame$;                          \
 });                                                                             \
-if(except_handler.exception != 0)
+if(except_handler.exception == 0){}else /*prevents a rogue else from producing unexpected results*/
 
 #ifdef EXCEPTION_IMPLEMENTATION
 
