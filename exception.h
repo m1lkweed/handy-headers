@@ -13,6 +13,7 @@ struct exception_frame {
 	volatile sig_atomic_t exception;
 };
 
+extern _Thread_local char _$exception_stack$[SIGSTKSZ];
 extern _Thread_local struct exception_frame except_handler;
 
 void _$except_init$(void);
@@ -42,7 +43,7 @@ if(except_handler.exception == 0){}else /*prevents a rogue else from producing u
 
 #ifdef EXCEPTION_IMPLEMENTATION
 
-static _Thread_local char _$exception_stack$[SIGSTKSZ];
+_Thread_local char _$exception_stack$[SIGSTKSZ];
 _Thread_local struct exception_frame except_handler = {0};;
 
 _Noreturn void _$exception_handler$(int signum){
