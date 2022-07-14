@@ -29,7 +29,7 @@
 // Replace a patchable function with another function
 int hotpatch(void * restrict target, void * restrict replacement);
 // If function is patched, return the address of the replacement, else NULL
-void *is_patched(void *function);
+[[gnu::pure]] void *is_patched(void *function);
 // Returns true if function is patchable, useful if ALLOW_UNSAFE_HOTPATCH is not defined
 [[gnu::pure]] bool is_patchable(void *function);
 // Returns a callable address of the original patched function
@@ -112,7 +112,7 @@ int hotpatch(void * restrict target, void * restrict replacement){
 	return 0;
 }
 
-void *is_patched(void *function){
+[[gnu::pure]] void *is_patched(void *function){
 	uint8_t *check = function;
 	if(!is_patchable(function))
 		return NULL;
