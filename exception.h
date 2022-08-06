@@ -43,8 +43,10 @@ if(except_handler.exception == 0){}else /*prevents a rogue else from producing u
 
 #ifdef EXCEPTION_IMPLEMENTATION
 
+#include <stddef.h>
+
 _Thread_local char _$exception_stack$[SIGSTKSZ];
-_Thread_local struct exception_frame except_handler = {0};;
+_Thread_local struct exception_frame except_handler = {0};
 
 _Noreturn void _$exception_handler$(int signum){
 	if(except_handler.frame){
