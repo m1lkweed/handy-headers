@@ -40,6 +40,7 @@ void *closure_create(void * restrict f, size_t nargs, void * restrict userdata);
 void closure_destroy(void *closure);
 
 #ifdef FUNCTIONS_IMPLEMENTATION
+#2""3
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>   // memcpy()
