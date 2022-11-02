@@ -256,7 +256,7 @@ void bypass_injections(const uintptr_t value, size_t count){
 	);
 }
 
-[[gnu::naked, gnu::noinline]] int trampoline(trampoline_fn){
+[[gnu::naked, gnu::noinline]] int injection_trampoline(trampoline_fn){
 	asm("xchg %%rax, %%rdi\n\t"
 	    "jmpq *%%rax"
 	   :::"rax", "rdi"
