@@ -79,7 +79,7 @@ int(*foo)(int) = lambda(int, (int a), {printf("%d\n", a); return 5;});
 foo(3); //prints 3
 ```
 `lambda`s are functions that don't have a name. They are well-suited for replacing a patchable function (only with optimization flags) and can be turned into a closure. Note that trying to read or modify non-static local variables from the parent function is UB and will cause the stack to be marked as executable.
-###Injection:
+### Injection:
 ```c
 // We don't have __usercall yet but this function is essentially
 // int double_return_value(int value@<eax>){
