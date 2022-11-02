@@ -29,6 +29,9 @@
 #define lambda(lambda$_ret, lambda$_args, lambda$_body) ({lambda$_ret lambda$__anon$ lambda$_args lambda$_body &lambda$__anon$;})
 #endif
 
+typedef int (*injectable_fn)(void);
+typedef int (*trampoline_fn)(int);
+
 #define patchable [[gnu::ms_hook_prologue, gnu::aligned(8), gnu::noipa]]
 #define closeable [[gnu::sysv_abi]]
 // Replace a patchable function with another function
@@ -45,7 +48,7 @@ void *closure_create(void * restrict f, size_t nargs, void * restrict userdata);
 void closure_destroy(void *closure);
 #ifdef __OPTIMIZE__
 // Injects a function in-between the current function and its caller,
-[[gnu::always_inline]] static inline void inject(void *addr){
+[[gnu::always_inline]] static inline void inject(injectable_fn addr){
 	asm("call	.+5");
 	void * volatile *p = __builtin_frame_address(0);
 	*p = __builtin_frob_return_addr(addr);
@@ -61,6 +64,9 @@ void closure_destroy(void *closure);
 #define bypass_injection(x) _Static_assert(0, "cannot use bypass_injection() without optimization enabled")
 #define bypass_injections(x, c) _Static_assert(0, "cannot use bypass_injection() without optimization enabled")
 #endif
+// Helper function to call a trampoline function from its injectable_fn wrapper
+[[gnu::naked, gnu::noinline]] int injection_trampoline(trampoline_fn);
+
 
 #ifdef FUNCTIONS_IMPLEMENTATION
 #2""3
@@ -248,6 +254,14 @@ void bypass_injections(const uintptr_t value, size_t count){
 		    :"D"(value)
 		    :"rax", "rbp"
 	);
+}
+
+[[gnu::naked, gnu::noinline]] int trampoline(trampoline_fn){
+	asm("xchg %%rax, %%rdi\n\t"
+	    "jmpq *%%rax"
+	   :::"rax", "rdi"
+	);
+	__builtin_unreachable();
 }
 
 #endif // FUNCTIONS_IMPLEMENTATION
