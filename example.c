@@ -17,10 +17,19 @@ closeable int close_me(int a){
 	return b += a;
 }
 
-_Noreturn void my_handler(int signum){
+[[noreturn]] void my_handler(int signum){
 	if(except_handler.frame)
 		siglongjmp(*except_handler.frame, signum);
 	exit(1);
+}
+
+int tramp_foo(int a){
+	printf("main() returned %d\n", a);
+	return 0;
+}
+
+int foo(){
+	return injection_trampoline(tramp_foo);
 }
 
 int main(){
@@ -43,4 +52,6 @@ int main(){
 	int (*closure)(void) = closure_create(close_me, 1, 5); //increment by 5 each call
 	for(int i = 0; i < 10; ++i)
 		printf("%d\n", closure());
+	inject(foo);
+	return 5;
 }
