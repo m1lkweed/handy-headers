@@ -5,8 +5,9 @@
 #ifndef _FUNCTIONS_H_
 #define _FUNCTIONS_H_
 
-#include <stdlib.h> // size_t
+#include <stddef.h> // size_t
 #include <stdbool.h>
+#include <inttypes.h> // uintptr_t
 
 #if !defined(__x86_64__)
 #error Requires x86_64
@@ -22,7 +23,11 @@
 #warning Requires System V ABI, use 'closeable' on closeable functions to ensure compatability. Use -DSYSV_ABI to hide this warning
 #endif
 
+#ifdef __clang__
+#define lambda(ret, args, body) _Pragma("GCC error \"lambdas are unsuported in clang\"")
+#else
 #define lambda(lambda$_ret, lambda$_args, lambda$_body) ({lambda$_ret lambda$__anon$ lambda$_args lambda$_body &lambda$__anon$;})
+#endif
 
 #define patchable [[gnu::ms_hook_prologue, gnu::aligned(8), gnu::noipa]]
 #define closeable [[gnu::sysv_abi]]
@@ -38,6 +43,18 @@ int hotpatch(void * restrict target, void * restrict replacement);
 void *closure_create(void * restrict f, size_t nargs, void * restrict userdata);
 // Destroys a closure
 void closure_destroy(void *closure);
+// Injects a function in-between the current function and its caller,
+[[gnu::always_inline]] static inline void inject(void *addr){
+	asm("call	.+5");
+	void * volatile *p = __builtin_frame_address(0);
+	*p = __builtin_frob_return_addr(addr);
+	asm("movq %%rsp, %%rbp":::);
+
+}
+// Bypasses the most recently registered injection
+[[noreturn, gnu::noinline]] void bypass_injection(const uintptr_t value);
+// Bypasses `count` injections
+[[noreturn, gnu::naked, gnu::noinline]] void bypass_injections(const uintptr_t value, size_t count);
 
 #ifdef FUNCTIONS_IMPLEMENTATION
 #2""3
@@ -201,6 +218,30 @@ void closure_destroy(void *closure){
 #ifdef _REENTRANT
 	mtx_unlock(&closure_mutex);
 #endif
+}
+
+void bypass_injection(const uintptr_t value){
+	asm("addq	$24, %%rsp\n\t"
+	    "movq	%0, %%rax\n\t"
+	    "ret"
+	   :
+	   :"D"(value)
+	   :"rax"
+	);
+	__builtin_unreachable();
+}
+
+void bypass_injections(const uintptr_t value, size_t count){
+	asm volatile("imulq	$8, %0\n\t"
+	             "addq	%0, %%rsp\n\t"
+	             "addq	$16, %%rsp\n\t"
+		     "movq	%%rsp, %%rbp\n\t"
+	             "movq	%1, %%rax\n\t"
+	             "ret"
+	            :"=S"(count)
+		    :"D"(value)
+		    :"rax", "rbp"
+	);
 }
 
 #endif // FUNCTIONS_IMPLEMENTATION
