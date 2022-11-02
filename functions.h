@@ -43,6 +43,7 @@ int hotpatch(void * restrict target, void * restrict replacement);
 void *closure_create(void * restrict f, size_t nargs, void * restrict userdata);
 // Destroys a closure
 void closure_destroy(void *closure);
+#ifdef __OPTIMIZE__
 // Injects a function in-between the current function and its caller,
 [[gnu::always_inline]] static inline void inject(void *addr){
 	asm("call	.+5");
@@ -55,6 +56,11 @@ void closure_destroy(void *closure);
 [[noreturn, gnu::noinline]] void bypass_injection(const uintptr_t value);
 // Bypasses `count` injections
 [[noreturn, gnu::naked, gnu::noinline]] void bypass_injections(const uintptr_t value, size_t count);
+#else
+#define inject(x) _Static_assert(0, "cannot use inject() without optimization enabled")
+#define bypass_injection(x) _Static_assert(0, "cannot use bypass_injection() without optimization enabled")
+#define bypass_injections(x, c) _Static_assert(0, "cannot use bypass_injection() without optimization enabled")
+#endif
 
 #ifdef FUNCTIONS_IMPLEMENTATION
 #2""3
@@ -256,4 +262,4 @@ void bypass_injections(const uintptr_t value, size_t count){
 #endif
 
 #endif // _FUNCTIONS_H_
-/*--------------------- --END OF EXTRA FUNCTIONS CODE------------------------*/
+/*------------------------END OF EXTRA FUNCTIONS CODE------------------------*/
