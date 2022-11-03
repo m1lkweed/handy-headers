@@ -50,7 +50,7 @@ void closure_destroy(void *closure);
 	void *ret = __builtin_return_address(0);
 	void * volatile *p = __builtin_frame_address(0);
 	*p = __builtin_frob_return_addr(addr);
-	asm("movq %%rsp, %%rbp":::);
+	asm("movq	%%rsp, %%rbp":::);
 	return ret;
 
 }
@@ -255,8 +255,8 @@ void bypass_injections(const uintptr_t value, size_t count){
 }
 
 [[gnu::naked, gnu::noinline]] int injection_trampoline(int(*)(int)){
-	asm("xchg %%rax, %%rdi\n\t"
-	    "jmpq *%%rax"
+	asm("xchg	%%rax, %%rdi\n\t"
+	    "jmpq	*%%rax"
 	   :::"rax", "rdi"
 	);
 }
