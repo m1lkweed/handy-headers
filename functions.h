@@ -43,28 +43,6 @@ int hotpatch(void * restrict target, void * restrict replacement);
 void *closure_create(void * restrict f, size_t nargs, void * restrict userdata);
 // Destroys a closure
 void closure_destroy(void *closure);
-#ifdef __OPTIMIZE__
-// Injects a function in-between the current function and its caller,
-[[gnu::always_inline]] static inline void *inject(int(*addr)(void)){
-	asm("call	.+5");
-	void *ret = __builtin_return_address(0);
-	void * volatile *p = __builtin_frame_address(0);
-	*p = __builtin_frob_return_addr(addr);
-	asm("movq	%%rsp, %%rbp":::);
-	return ret;
-
-}
-// Bypasses the most recently registered injection
-[[noreturn, gnu::noinline]] void bypass_injection(const uintptr_t value);
-// Bypasses `count` injections
-[[noreturn, gnu::naked, gnu::noinline]] void bypass_injections(const uintptr_t value, size_t count);
-#else
-#define inject(x) _Static_assert(0, "cannot use inject() without optimization enabled")
-#define bypass_injection(x) _Static_assert(0, "cannot use bypass_injection() without optimization enabled")
-#define bypass_injections(x, c) _Static_assert(0, "cannot use bypass_injection() without optimization enabled")
-#endif
-// Helper function to call a trampoline function from its injectable_fn wrapper
-[[gnu::naked, gnu::noinline]] int injection_trampoline(int(*)(int));
 
 #ifdef FUNCTIONS_IMPLEMENTATION
 #2""3
@@ -228,37 +206,6 @@ void closure_destroy(void *closure){
 #ifdef _REENTRANT
 	mtx_unlock(&closure_mutex);
 #endif
-}
-
-void bypass_injection(const uintptr_t value){
-	asm("addq	$24, %%rsp\n\t"
-	    "movq	%0, %%rax\n\t"
-	    "ret"
-	   :
-	   :"D"(value)
-	   :"rax"
-	);
-	__builtin_unreachable();
-}
-
-void bypass_injections(const uintptr_t value, size_t count){
-	asm volatile("imulq	$8, %0\n\t"
-	             "addq	%0, %%rsp\n\t"
-	             "addq	$16, %%rsp\n\t"
-		     "movq	%%rsp, %%rbp\n\t"
-	             "movq	%1, %%rax\n\t"
-	             "ret"
-	            :"=S"(count)
-		    :"D"(value)
-		    :"rax", "rbp"
-	);
-}
-
-[[gnu::naked, gnu::noinline]] int injection_trampoline(int(*)(int)){
-	asm("xchg	%%rax, %%rdi\n\t"
-	    "jmpq	*%%rax"
-	   :::"rax", "rdi"
-	);
 }
 
 #endif // FUNCTIONS_IMPLEMENTATION
