@@ -23,15 +23,6 @@ closeable int close_me(int a){
 	exit(1);
 }
 
-int tramp_foo(int a){
-	printf("main() returned %d\n", a);
-	return 0;
-}
-
-int foo(){
-	return injection_trampoline(tramp_foo);
-}
-
 int main(){
 	foo();
 	if(is_patchable(foo))
@@ -52,6 +43,5 @@ int main(){
 	int (*closure)(void) = closure_create(close_me, 1, 5); //increment by 5 each call
 	for(int i = 0; i < 10; ++i)
 		printf("%d\n", closure());
-	inject(foo);
 	return 5;
 }
