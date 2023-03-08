@@ -19,9 +19,9 @@ extern _Thread_local struct exception_frame except_handler;
 void _$except_init$(void);
 void throw(int id);
 
-#define try ({                                                                      \
+#define try do{                                                                     \
 	sigjmp_buf *_$old_exception_frame$, _$new_exception_frame$;                 \
-	int _$except_dummy$ = -1;                                                   \
+	volatile int _$except_dummy$ = -1;                                          \
 	_$old_exception_frame$ = except_handler.frame;                              \
 	except_handler.frame = &_$new_exception_frame$;                             \
 	except_handler.exception = 0;                                               \
@@ -38,8 +38,7 @@ void throw(int id);
 		_$EXCEPT_EMPTY$(_$except_dummy$, e) = except_handler.exception; \
 	}                                                                       \
 	except_handler.frame = _$old_exception_frame$;                          \
-});                                                                             \
-if(except_handler.exception == 0){}else /*prevents a rogue else from producing unexpected results*/
+}while(0);if(except_handler.exception == 0){}else
 
 #ifdef EXCEPTION_IMPLEMENTATION
 
