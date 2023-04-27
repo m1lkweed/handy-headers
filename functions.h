@@ -24,7 +24,7 @@
 #endif
 
 #ifdef __clang__
-#define lambda(ret, args, body) _Pragma("GCC error \"lambdas are unsuported in clang\"")
+#define lambda(ret, args, body) _Pragma("GCC error \"lambdas are unsupported in clang\"")
 #else
 #define lambda(lambda$_ret, lambda$_args, lambda$_body) ({lambda$_ret lambda$__anon$ lambda$_args lambda$_body &lambda$__anon$;})
 #endif
