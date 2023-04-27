@@ -58,7 +58,7 @@ Unless `ALLOW_UNSAFE_HOTPATCH` is defined, all calls to `hotpatch()` will ensure
 
 ### Closures:
 ```c
-closeable int close_me(int a){ //required on systems that do not use the SYSV ABI by default
+closeable int close_me(int a){ //'closeable' required on systems that do not use the SYSV ABI by default
 	static int b = 0;
 	return b += a;
 }
