@@ -40,7 +40,7 @@ void throw(int id);
 	}                                                                       \
 	except_handler.frame = _$old_exception_frame$;                          \
 }while(0);if(except_handler.exception == 0){}else for(struct{_Bool a;int        \
-	_$except_no_gotos$[({int n = -1;n;})];} _$inc$ = {};_$inc$.a;++_$inc$.a)
+	_$except_no_gotos$[({int n=-1;n;})];}_$inc$={};_$inc$.a;++_$inc$.a)
 
 #ifdef EXCEPTION_IMPLEMENTATION
 
