@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <xsetjmp.h>
 #define FUNCTIONS_IMPLEMENTATION
 #define EXCEPTION_IMPLEMENTATION
 #include "functions.h"
@@ -19,7 +21,7 @@ closeable int close_me(int a){
 
 [[noreturn]] void my_handler(int signum){
 	if(except_handler.frame)
-		siglongjmp(*except_handler.frame, signum);
+		xsiglongjmp(*except_handler.frame, signum);
 	exit(1);
 }
 
