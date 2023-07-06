@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <xsetjmp.h>
 #define FUNCTIONS_IMPLEMENTATION
 #define EXCEPTION_IMPLEMENTATION
 #include "functions.h"
