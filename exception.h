@@ -5,11 +5,11 @@
 #ifndef _EXCEPTION_H_
 #define _EXCEPTION_H_
 
-#include <setjmp.h>
+#include <xsetjmp.h>
 #include <signal.h>
 
 struct exception_frame {
-	sigjmp_buf *frame;
+	xsigjmp_buf *frame;
 	volatile sig_atomic_t exception;
 };
 
@@ -19,16 +19,16 @@ extern _Thread_local struct exception_frame except_handler;
 void _$except_init$(void);
 void throw(int id);
 
-#define try do{                                                                     \
-	sigjmp_buf *_$old_exception_frame$, _$new_exception_frame$;                 \
-	volatile int _$except_dummy$ = -1;                                          \
-	typedef int _$except_no_gotos$[_$except_dummy$];                            \
-	_$old_exception_frame$ = except_handler.frame;                              \
-	except_handler.frame = &_$new_exception_frame$;                             \
-	except_handler.exception = 0;                                               \
-	_$except_init$();                                                           \
-	if((except_handler.exception = sigsetjmp(_$new_exception_frame$, 0)) == 0){ \
-		for(; _$except_dummy$; ++_$except_dummy$) /*lets us call break safely*/
+#define try do{                                                                      \
+	xsigjmp_buf *_$old_exception_frame$, _$new_exception_frame$;                 \
+	volatile int _$except_dummy$ = -1;                                           \
+	typedef int _$except_no_gotos$[_$except_dummy$];                             \
+	_$old_exception_frame$ = except_handler.frame;                               \
+	except_handler.frame = &_$new_exception_frame$;                              \
+	except_handler.exception = 0;                                                \
+	_$except_init$();                                                            \
+	if((except_handler.exception = xsigsetjmp(_$new_exception_frame$, 0)) == 0){ \
+		for(; _$except_dummy$; ++_$except_dummy$)
 
 #define _$EXCEPT_EMPTY$_HELPER(...) = except_handler.exception, ## __VA_ARGS__
 #define _$EXCEPT_EMPTY$(default, ...) default _$EXCEPT_EMPTY$_HELPER(__VA_ARGS__)
@@ -51,7 +51,7 @@ _Thread_local struct exception_frame except_handler = {0};
 
 _Noreturn void _$exception_handler$(int signum){
 	if(except_handler.frame){
-		siglongjmp(*except_handler.frame, signum);
+		xsiglongjmp(*except_handler.frame, signum);
 	}else{
 		//Set handler to SIG_DFL and reraise signal, in case
 		//the system wants to print a message or core dump
@@ -143,7 +143,7 @@ _Noreturn void _$exception_handler$(int signum){
 	if(id != 0){
 		except_handler.exception = id;
 		if(except_handler.frame)
-			siglongjmp(*except_handler.frame, id);
+			xsiglongjmp(*except_handler.frame, id);
 		_$exception_handler$(id);
 	}
 }
