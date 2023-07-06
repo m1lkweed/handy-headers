@@ -65,6 +65,7 @@ _Noreturn void _$exception_handler$(int signum){
 		sigaction(signum,  &old_action, NULL);
 		_Exit(128 + signum);
 	}
+	__builtin_unreachable();
 }
 
 [[gnu::constructor]] void _$except_init$(void){
