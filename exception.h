@@ -22,6 +22,7 @@ void throw(int id);
 #define try do{                                                                     \
 	sigjmp_buf *_$old_exception_frame$, _$new_exception_frame$;                 \
 	volatile int _$except_dummy$ = -1;                                          \
+	typedef int _$except_no_gotos$[_$except_dummy$];                            \
 	_$old_exception_frame$ = except_handler.frame;                              \
 	except_handler.frame = &_$new_exception_frame$;                             \
 	except_handler.exception = 0;                                               \
@@ -38,7 +39,8 @@ void throw(int id);
 		_$EXCEPT_EMPTY$(_$except_dummy$, e) = except_handler.exception; \
 	}                                                                       \
 	except_handler.frame = _$old_exception_frame$;                          \
-}while(0);if(except_handler.exception == 0){}else
+}while(0);if(except_handler.exception == 0){}else for(struct{_Bool a;int        \
+	_$except_no_gotos$[({int n = -1;n;})];} _$inc$ = {};_$inc$.a;++_$inc$.a)
 
 #ifdef EXCEPTION_IMPLEMENTATION
 
