@@ -5,7 +5,11 @@
 #ifndef _EXCEPTION_H_
 #define _EXCEPTION_H_
 
+#if defined __godbolt__ || defined __GODBOLT__
+#include "https://raw.githubusercontent.com/m1lkweed/handy-headers/main/xsetjmp.h"
+#else
 #include "xsetjmp.h"
+#endif
 #include <signal.h>
 
 struct exception_frame {
