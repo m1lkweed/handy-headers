@@ -20,7 +20,7 @@ closeable int close_me(int a){
 
 [[noreturn]] void my_handler(int signum){
 	if(except_handler.frame)
-		xsiglongjmp(*except_handler.frame, signum);
+		siglongjmp(*except_handler.frame, signum);
 	exit(1);
 }
 
