@@ -30,7 +30,7 @@ void throw(int id);
 	if((except_handler.exception = sigsetjmp(_$new_exception_frame$, 0)) == 0){ \
 		for(_$except_dummy$ = 1; _$except_dummy$; --_$except_dummy$)
 
-#define _$EXCEPT_EMPTY$_HELPER(...) = except_handler.exception, ## __VA_ARGS__
+#define _$EXCEPT_EMPTY$_HELPER(...) = except_handler.exception __VA_OPT__(,) __VA_ARGS__
 #define _$EXCEPT_EMPTY$(default, ...) default _$EXCEPT_EMPTY$_HELPER(__VA_ARGS__)
 
 #define except(e)                                                               \
@@ -40,7 +40,7 @@ void throw(int id);
 	}                                                                       \
 	except_handler.frame = _$old_exception_frame$;                          \
 }while(0);if(except_handler.exception == 0){}else for(struct{_Bool a;int        \
-	_$except_no_gotos$[1,1];}_$inc$={};_$inc$.a;_$inc$.a=1)
+	_$except_no_gotos$[((void)1,0)];}_$inc$={};_$inc$.a;_$inc$.a=1)
 
 #ifdef EXCEPTION_IMPLEMENTATION
 
