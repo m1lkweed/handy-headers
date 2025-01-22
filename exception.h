@@ -1,7 +1,7 @@
 // Adds try/throw/except for catching signals
 // Original code (c)Patricio Bonsembiante (pbonsembiante@gmail.com)
 // Released under the GPLv3+
-// Updates (c)m1lkweed 2022 GPLv3+
+// Updates (c)m1lkweed 2022-2025 GPLv3+
 #ifndef _EXCEPTION_H_
 #define _EXCEPTION_H_
 
@@ -19,18 +19,17 @@ extern _Thread_local struct exception_frame except_handler;
 void _$except_init$(void);
 void throw(int id);
 
-#define try do{                                                                      \
-	sigjmp_buf *_$old_exception_frame$, _$new_exception_frame$;                  \
-	volatile int _$except_dummy$ = -1;                                           \
-	typedef int _$except_no_gotos$[_$except_dummy$];                             \
-	_$old_exception_frame$ = except_handler.frame;                               \
-	except_handler.frame = &_$new_exception_frame$;                              \
-	except_handler.exception = 0;                                                \
-	_$except_init$();                                                            \
+#define try do{                                                                     \
+	sigjmp_buf *_$old_exception_frame$, _$new_exception_frame$;                 \
+	volatile int _$except_dummy$ = -1;                                          \
+	_$old_exception_frame$ = except_handler.frame;                              \
+	except_handler.frame = &_$new_exception_frame$;                             \
+	except_handler.exception = 0;                                               \
+	_$except_init$();                                                           \
 	if((except_handler.exception = sigsetjmp(_$new_exception_frame$, 0)) == 0){ \
-		for(_$except_dummy$ = 1; _$except_dummy$; --_$except_dummy$)
+		for(; _$except_dummy$; ++_$except_dummy$) /*lets us call break safely*/
 
-#define _$EXCEPT_EMPTY$_HELPER(...) = except_handler.exception __VA_OPT__(,) __VA_ARGS__
+#define _$EXCEPT_EMPTY$_HELPER(...) = except_handler.exception, ## __VA_ARGS__
 #define _$EXCEPT_EMPTY$(default, ...) default _$EXCEPT_EMPTY$_HELPER(__VA_ARGS__)
 
 #define except(e)                                                               \
@@ -39,8 +38,8 @@ void throw(int id);
 		_$EXCEPT_EMPTY$(_$except_dummy$, e) = except_handler.exception; \
 	}                                                                       \
 	except_handler.frame = _$old_exception_frame$;                          \
-}while(0);if(except_handler.exception == 0){}else for(struct{_Bool a;int        \
-	_$except_no_gotos$[((void)1,0)];}_$inc$={};_$inc$.a;_$inc$.a=1)
+}while(0);                                                                      \
+if(except_handler.exception == 0){}else /*prevents a rogue else from producing unexpected results*/
 
 #ifdef EXCEPTION_IMPLEMENTATION
 
@@ -49,7 +48,7 @@ void throw(int id);
 _Thread_local char _$exception_stack$[SIGSTKSZ];
 _Thread_local struct exception_frame except_handler = {0};
 
-_Noreturn void _$exception_handler$(int signum){
+[[noreturn]] void _$exception_handler$(int signum){
 	if(except_handler.frame){
 		siglongjmp(*except_handler.frame, signum);
 	}else{
